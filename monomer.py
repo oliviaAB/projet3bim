@@ -10,8 +10,6 @@ import numpy
 
 SPEED=10
 TIME=0.1
-W=50 #cell is a 50x50 square
-H=50
 NB_MONO=10 #number of monomers in the cell
 
 R=50
@@ -29,6 +27,9 @@ class monomer:
         #cartesian coordinates updated
         self.x=self.r*math.cos(self.theta)
         self.y=self.r*math.sin(self.theta)
+
+        self.v1=random.random()*2-1
+        self.v2=random.random()*2-1
 
     def __repr__(self):
         print self.r, self.theta
@@ -48,26 +49,24 @@ class monomer:
         self.r=math.sqrt(self.x*self.x+self.y*self.y)
         self.theta=math.atan2(self.y,self.x)
 
-    
-
     def move(self):
 
         #coordonates of moving vector between -1 and 1
-        dr=random.random()*2-1
-        dtheta=random.random()*2-1
-        norm=math.sqrt(dr*dr+dtheta*dtheta)
+        self.v1=self.v1+(random.random()*2-1)*0.01
+        self.v2=self.v2+(random.random()*2-1)*0.01
+        norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
 
         #monomer's speed constant
-        dr=dr*SPEED/norm
-        dtheta=dtheta*SPEED/norm
+        self.v1=self.v1*SPEED/norm
+        self.v2=self.v2*SPEED/norm
 
         #wind
         if self.r>(R-10):
-            dr=dr-1
+            self.v1=self.v1-1
 
         #coordonates updated
-        self.r=self.r+TIME*dr
-        self.theta=self.theta+TIME*dtheta
+        self.r=self.r+TIME*self.v1
+        self.theta=self.theta+TIME*self.v2
 
         self.update_cart()
 
