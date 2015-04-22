@@ -6,7 +6,7 @@ import os, time
 
 import random
 import math
-import numpy
+#import numpy
 
 SPEED=10
 TIME=0.1
@@ -91,10 +91,10 @@ class boid:
             for i in xrange(NB_MONO):
                 plot(self.monomers[i].x, self.monomers[i].y,'o', color='k')
 
-        filename = 'fichierTemp'+str('%02d' %k)+'.pdf'
-        savefig(filename)
-        print "Plot",  k
-        clf()
+            filename = 'fichierTemp'+str('%02d' %k)+'.pdf'
+            savefig(filename)
+            print "Plot",  k
+            clf()
 
         # convert est une fonction d'ImageMagick
         cmd = 'convert -delay 10 -loop 0 fichierTemp*.pdf Modele_animation_003.gif'
