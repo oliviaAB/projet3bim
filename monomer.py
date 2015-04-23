@@ -13,6 +13,7 @@ import math
 SPEED=20
 TIME=0.1 #0.01
 NB_MONO=10 #number of monomers in the cell
+NB_OBS=10 #number of obstacles in the cell
 
 R=200
 RAYON=5
@@ -110,6 +111,96 @@ class monomer:
 
 #-------------------------------------------------------------------------------
 
+class obstacle:
+
+    def __init__(self):
+        
+        #polar coordinates initialized randomly
+        self.r=random.random()*R
+        self.theta=random.random()*math.pi-(math.pi/2)
+
+        #cartesian coordinates updated
+        self.x=self.r*math.cos(self.theta)+R
+        self.y=self.r*math.sin(self.theta)+R
+
+        self.v1=random.random()*2-1
+        self.v2=random.random()*2-1
+
+    def __repr__(self):
+        print self.r, self.theta
+        return str(self.x)+","+str(self.y)
+
+    def get_coordcart(self):
+        return(self.x,self.y)
+
+    def get_coordpol(self):
+        return(self.r,self.theta)
+
+    def update_cart(self):
+        self.x=self.r*math.cos(self.theta)+R
+        self.y=self.r*math.sin(self.theta)+R
+
+    def update_pol(self):
+        x=self.x-R
+        y=self.y-R
+        self.r=math.sqrt(x*x+y*y)
+        self.theta=math.atan2(y,x)
+        #print self.r
+##        self.r=math.sqrt(self.x*self.x+self.y*self.y)
+##        self.theta=math.atan2(self.y,self.x)
+
+    def move(self):
+
+        #coordonates of moving vector between -1 and 1
+        self.v1=self.v1+(random.random()*2-1)*5
+        self.v2=self.v2+(random.random()*2-1)*5
+        norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
+
+        #monomer's speed constant
+        self.v1=self.v1*SPEED/norm
+        self.v2=self.v2*SPEED/norm
+
+        #wind
+        if self.r>(R-50):
+            braking=(50-(R-self.r))/5
+            #print braking
+            
+            if self.x>R:
+                #top right quarter
+                if self.y<R:
+                    self.v1=self.v1-braking
+                    self.v2=self.v2+braking
+                    
+                #bottom right quarter
+                if self.y>R:
+                    self.v1=self.v1-braking
+                    self.v2=self.v2-braking
+
+            #left half
+            if self.x<R:
+                #top left quarter
+                if self.y<R:
+                    self.v1=self.v1+braking
+                    self.v2=self.v2+braking
+
+                #bottom left quarter
+                if self.y>R:
+                    self.v1=self.v1+braking
+                    self.v2=self.v2-braking
+
+
+        #coordonates updated
+        #self.r=self.r+TIME*self.v1
+        #self.theta=self.theta+TIME*self.v2
+        self.x=self.x+TIME*self.v1
+        self.y=self.y+TIME*self.v2
+
+        #print self.v1, self.v2
+
+        #self.update_cart()
+        self.update_pol()
+
+#-----------------------------------------------------------------------------
 
 class boid:
 
@@ -127,9 +218,13 @@ class boid:
 
         #table of monomers
         self.monomers=[monomer() for i in xrange(NB_MONO)]
+        #table of obstacles
+        self.obstacles=[obstacle() for i in xrange(NB_OBS)]
 
-    #table of circles to draw for each monomer
-        self.points=[self.canevas.create_oval(self.monomers[i].x-RAYON,self.monomers[i].y-RAYON,self.monomers[i].x+RAYON,self.monomers[i].y+RAYON,width=1,outline='blue',fill='blue') for i in xrange(NB_MONO)]
+        #table of circles to draw for each monomer
+        self.points_mono=[self.canevas.create_oval(self.monomers[i].x-RAYON,self.monomers[i].y-RAYON,self.monomers[i].x+RAYON,self.monomers[i].y+RAYON,width=1,outline='blue',fill='blue') for i in xrange(NB_MONO)]
+        #table of circles to draw for each obstacle
+        self.points_obs=[self.canevas.create_oval(self.obstacles[i].x-RAYON,self.obstacles[i].y-RAYON,self.obstacles[i].x+RAYON,self.obstacles[i].y+RAYON,width=1,outline='green',fill='green') for i in xrange(NB_OBS)]
 
 
     def __repr__(self):
@@ -138,6 +233,9 @@ class boid:
         return ""
 
     def move(self):
+        for i in xrange(NB_OBS):
+            self.obstacles[i].move()
+            
         for i in xrange(NB_MONO):
             self.monomers[i].move()
 
@@ -146,7 +244,11 @@ class boid:
 
         #update of points coordinates for the animation
         for i in xrange(NB_MONO):
-            self.canevas.coords(self.points[i],self.monomers[i].x-RAYON,self.monomers[i].y-RAYON,self.monomers[i].x+RAYON,self.monomers[i].y+5)
+            self.canevas.coords(self.points_mono[i],self.monomers[i].x-RAYON,self.monomers[i].y-RAYON,self.monomers[i].x+RAYON,self.monomers[i].y+5)
+
+        for i in xrange(NB_OBS):
+            self.canevas.coords(self.points_obs[i],self.obstacles[i].x-RAYON-3,self.obstacles[i].y-RAYON,self.obstacles[i].x+RAYON+3,self.obstacles[i].y+5)
+
 
         #refreash the window every 10 ms    
         self.window.after(10, self.draw)
