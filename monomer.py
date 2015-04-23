@@ -12,12 +12,14 @@ import math
 
 SPEED=20
 TIME=0.1 #0.01
+
 NB_MONO=10 #number of monomers in the cell
-NB_OBS=10 #number of obstacles in the cell
+NB_OBS=5 #number of obstacles in the cell
 
 R=200
 RAYON=5
 
+CONTACT_OBS=10
 
 
 class monomer:
@@ -58,7 +60,14 @@ class monomer:
 ##        self.r=math.sqrt(self.x*self.x+self.y*self.y)
 ##        self.theta=math.atan2(self.y,self.x)
 
-    def move(self):
+    def near_obs(self, obstacle):
+        res=0
+        norm=math.sqrt((self.x-obstacle.x)*(self.x-obstacle.x)+(self.y-obstacle.y)*(self.y-obstacle.y))
+        if norm<CONTACT_OBS:
+            res=1
+        return res
+
+    def move_random(self):
 
         #coordonates of moving vector between -1 and 1
         self.v1=self.v1+(random.random()*2-1)*5
@@ -69,7 +78,7 @@ class monomer:
         self.v1=self.v1*SPEED/norm
         self.v2=self.v2*SPEED/norm
 
-        #wind
+    def wind(self):
         if self.r>(R-50):
             braking=(50-(R-self.r))/5
             #print braking
@@ -98,16 +107,36 @@ class monomer:
                     self.v2=self.v2-braking
 
 
-        #coordonates updated
-        #self.r=self.r+TIME*self.v1
-        #self.theta=self.theta+TIME*self.v2
+    def move(self, obstacles):
+        obs=0
+        v1=0
+        v2=0
+
+        for i in xrange(NB_OBS):
+            if self.near_obs(obstacles[i])==1:
+                v1=v1+obstacles[i].v1-self.v1
+                v2=v2+obstacles[i].v2-self.v2
+                obs+=1
+
+                obstacles[i].v1=self.v1-obstacles[i].v1
+                obstacles[i].v2=self.v2-obstacles[i].v2
+                
+        if obs==0:
+            self.move_random()
+        else:
+            self.v1=v1/obs
+            self.v2=v2/obs
+            norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
+            self.v1=self.v1*(SPEED+10)/norm
+            self.v2=self.v2*(SPEED+10)/norm
+
+        self.wind()
+
         self.x=self.x+TIME*self.v1
         self.y=self.y+TIME*self.v2
 
-        #print self.v1, self.v2
-
-        #self.update_cart()
         self.update_pol()
+                
 
 #-------------------------------------------------------------------------------
 
@@ -237,7 +266,7 @@ class boid:
             self.obstacles[i].move()
             
         for i in xrange(NB_MONO):
-            self.monomers[i].move()
+            self.monomers[i].move(self.obstacles)
 
     def draw(self):
         self.move()
