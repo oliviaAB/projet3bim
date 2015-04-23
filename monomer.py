@@ -1,32 +1,35 @@
-from __future__ import division
-from scipy import * 
-from pylab import *
-from scipy.integrate import odeint
-import os, time
+##from __future__ import division
+##from scipy import * 
+##from pylab import *
+##from scipy.integrate import odeint
+##import os, time
+
+from Tkinter import *
 
 import random
 import math
 #import numpy
 
 SPEED=10
-TIME=0.1
+TIME=0.01
 NB_MONO=10 #number of monomers in the cell
 
-R=50
+R=100
+RAYON=5
 
 
 
 class monomer:
 
     def __init__(self):
-
+        
         #polar coordinates initialized randomly
         self.r=random.random()*R
         self.theta=random.random()*math.pi-(math.pi/2)
 
         #cartesian coordinates updated
-        self.x=self.r*math.cos(self.theta)
-        self.y=self.r*math.sin(self.theta)
+        self.x=self.r*math.cos(self.theta)+R
+        self.y=self.r*math.sin(self.theta)+R
 
         self.v1=random.random()*2-1
         self.v2=random.random()*2-1
@@ -42,8 +45,8 @@ class monomer:
         return(self.r,self.theta)
 
     def update_cart(self):
-        self.x=self.r*math.cos(self.theta)
-        self.y=self.r*math.sin(self.theta)
+        self.x=self.r*math.cos(self.theta)+R
+        self.y=self.r*math.sin(self.theta)+R
 
     def update_pol(self):
         self.r=math.sqrt(self.x*self.x+self.y*self.y)
@@ -71,10 +74,24 @@ class monomer:
         self.update_cart()
 
 
+#-------------------------------------------------------------------------------
+
+
 class boid:
 
     def __init__(self):
+
+        self.window=Tk()
+        self.window.title('cytoskeleton')
+
+        self.canevas=Canvas(self.window, width=2*R+20, height=2*R+20, bg='white')
+        self.canevas.pack(padx=5,pady=5)
+        center=R+10
+        self.canevas.create_oval(center-R,center-R,center+R,center+R,outline="black",fill="white")
         self.monomers=[monomer() for i in xrange(NB_MONO)]
+
+        self.points=[self.canevas.create_oval(self.monomers[i].x-RAYON,self.monomers[i].y-RAYON,self.monomers[i].x+RAYON,self.monomers[i].y+RAYON,width=1,outline='blue',fill='blue') for i in xrange(NB_MONO)]
+
 
     def __repr__(self):
         for i in xrange(NB_MONO):
@@ -86,25 +103,22 @@ class boid:
             self.monomers[i].move()
 
     def draw(self):
-        for k in xrange(100):
-            self.move()
-            for i in xrange(NB_MONO):
-                plot(self.monomers[i].x, self.monomers[i].y,'o', color='k')
+        self.move()
+        #self.canevas.delete(ALL)
+        for i in xrange(NB_MONO):
+            self.canevas.coords(self.points[i],self.monomers[i].x-RAYON,self.monomers[i].y-RAYON,self.monomers[i].x+RAYON,self.monomers[i].y+5)
+            
 
-            filename = 'fichierTemp'+str('%02d' %k)+'.pdf'
-            savefig(filename)
-            print "Plot",  k
-            clf()
+        print "end boucle"
+        self.window.after(10, self.draw)
+        
 
-        # convert est une fonction d'ImageMagick
-        cmd = 'convert -delay 10 -loop 0 fichierTemp*.pdf Modele_animation_003.gif'
-        print cmd
 
-        os.system(cmd)
-        os.system('del *.pdf')  # destruction des fichiers temporaires
-        print "C'est fini !"
+
 
 #-------------------------------------------------------------------------------
 
 envir=boid()
+print envir
 envir.draw()
+envir.window.mainloop()
