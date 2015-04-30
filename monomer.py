@@ -52,6 +52,9 @@ class monomer:
         self.v2=random.random()*2-1
 
         self.ispoly=0 #to know if the monomer is in a polymer
+        self.ishead=-1 #to know if the monomer is the head of the polymer (then ishead=-1), else, to know which monomer is the head of the polymer
+                        # if not in a polymer, ishead=-1
+
 
     def __repr__(self):
         print self.r, self.theta
@@ -128,6 +131,8 @@ class monomer:
         v1=0
         v2=0
 
+
+        #if the monomer is not in a polymer
         if self.ispoly==0:
 
             for i in xrange(NB_OBS):
@@ -150,9 +155,16 @@ class monomer:
                             polymers[num]=new
                             del polymers[y] 
                             self.ispoly=1
+                            monomers[y].ishead=num
 
                         elif monomers[y].ispoly==0:
                             polymers[num]=[y]
+                            monomers[y].ishead=num
+
+                        else:
+                            v1=v1+monomers[y].v1-self.v1
+                            v2=v2+monomers[y].v2-self.v2
+                            obs+=1
 
 
 
