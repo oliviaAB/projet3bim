@@ -20,10 +20,10 @@ import math
 #import numpy
 
 SPEED=20
-TIME=0.1 #0.01
+TIME=0.1 #0.1
 
-NB_MONO=10 #number of monomers in the cell
-NB_OBS=1 #number of obstacles in the cell
+NB_MONO=20 #number of monomers in the cell
+NB_OBS=5 #number of obstacles in the cell
 NB_FIX=1 #number of fixed obstacles in the cell
 
 R=200
@@ -33,6 +33,7 @@ RAYON_FIX=20
 CONTACT_MONO=5
 CONTACT_OBS=7
 CONTACT_FIX=22
+CONTACT_POL=8
 
 
 class monomer:
@@ -49,6 +50,8 @@ class monomer:
 
         self.v1=random.random()*2-1
         self.v2=random.random()*2-1
+
+        self.ispoly=0 #to know if the monomer is in a polymer
 
     def __repr__(self):
         print self.r, self.theta
@@ -120,50 +123,70 @@ class monomer:
                     self.v2=self.v2-braking
 
 
-    def move(self, obstacles, monomers,fixed,num):
+    def move(self, obstacles, monomers,fixed, polymers, num):
         obs=0
         v1=0
         v2=0
 
-        for i in xrange(NB_OBS):
-            if self.near(obstacles[i], CONTACT_OBS)==1:
-                v1=v1+obstacles[i].v1-self.v1
-                v2=v2+obstacles[i].v2-self.v2
-                obs+=1
+        if self.ispoly==0:
 
-        for y in xrange(NB_MONO):
-            if y!=num:
-                if self.near(monomers[y], CONTACT_MONO)==1:
-                    v1=v1+monomers[y].v1-self.v1
-                    v2=v2+monomers[y].v2-self.v2
+            for i in xrange(NB_OBS):
+                if self.near(obstacles[i], CONTACT_OBS)==1:
+                    v1=v1+obstacles[i].v1-self.v1
+                    v2=v2+obstacles[i].v2-self.v2
                     obs+=1
 
-        fix=0
-        for j in xrange(NB_FIX):
-            if self.near(fixed[j],CONTACT_FIX)==1:
-                self.v1=-self.v1
-                self.v2=-self.v2
-                fix=1
+            for y in xrange(NB_MONO):
+                if y!=num:
+                # if self.near(monomers[y], CONTACT_MONO)==1:
+                #     v1=v1+monomers[y].v1-self.v1
+                #     v2=v2+monomers[y].v2-self.v2
+                #     obs+=1
+
+                    if self.near(monomers[y], CONTACT_POL)==1:
+                        if polymers.has_key(y):
+                            new=polymers[y]
+                            new.append(y)
+                            polymers[num]=new
+                            del polymers[y] 
+                            self.ispoly=1
+
+                        elif monomers[y].ispoly==0:
+                            polymers[num]=[y]
+
+
+
+
+            fix=0
+            for j in xrange(NB_FIX):
+                if self.near(fixed[j],CONTACT_FIX)==1:
+                    self.v1=-self.v1
+                    self.v2=-self.v2
+                    fix=1
                     
                 
-        if obs==0:
-            self.move_random()
-        else:
-            self.v1=v1/obs
-            self.v2=v2/obs
-            norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
-            self.v1=self.v1*(SPEED+10)/norm
-            self.v2=self.v2*(SPEED+10)/norm
+        #if the monomer didn't hit anything, then random movment
+            if obs==0:
+               self.move_random()
 
-        if fix!=0:
-            norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
-            self.v1=self.v1*(SPEED+10)/norm
-            self.v2=self.v2*(SPEED+10)/norm
 
-        self.wind()
+            #else, take into consideration objects hit
+            else:
+                self.v1=v1/obs
+                self.v2=v2/obs
+                norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
+                self.v1=self.v1*(SPEED+10)/norm
+                self.v2=self.v2*(SPEED+10)/norm
 
-        self.x=self.x+TIME*self.v1
-        self.y=self.y+TIME*self.v2
+            if fix!=0:
+                norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
+                self.v1=self.v1*(SPEED+10)/norm
+                self.v2=self.v2*(SPEED+10)/norm
+
+            self.wind()
+
+            self.x=self.x+TIME*self.v1
+            self.y=self.y+TIME*self.v2
 
         self.update_pol()
                 
@@ -301,7 +324,7 @@ class obstacle_fixed:
     def __init__(self):
         
         #polar coordinates initialized randomly
-        self.r=random.random()*R
+        self.r=random.random()*(R-RAYON_FIX) #to prevent fixed obstacles from being on the limit of the cell
         self.theta=random.random()*math.pi-(math.pi/2)
 
         #cartesian coordinates updated
@@ -320,7 +343,7 @@ class obstacle_fixed:
 
 #-----------------------------------------------------------------------------
 
-class boid:
+class cell:
 
     def __init__(self):
 
@@ -340,11 +363,13 @@ class boid:
         self.obstacles=[obstacle() for i in xrange(NB_OBS)]
         #table of fixed obstacles
         self.fixed=[obstacle_fixed() for i in xrange(NB_FIX)]
+        #table of polymers (dictionnary)
+        self.polymers={}
 
         #table of circles to draw for each monomer
         self.points_mono=[self.canevas.create_oval(self.monomers[i].x-RAYON,self.monomers[i].y-RAYON,self.monomers[i].x+RAYON,self.monomers[i].y+RAYON,width=1,outline='blue',fill='blue') for i in xrange(NB_MONO)]
         #table of circles to draw for each obstacle
-        self.points_obs=[self.canevas.create_oval(self.obstacles[i].x-RAYON,self.obstacles[i].y-RAYON,self.obstacles[i].x+RAYON,self.obstacles[i].y+RAYON,width=1,outline='green',fill='green') for i in xrange(NB_OBS)]
+        self.points_obs=[self.canevas.create_oval(self.obstacles[i].x-RAYON,self.obstacles[i].y-RAYON,self.obstacles[i].x+RAYON,self.obstacles[i].y+RAYON ,width=1,outline='green',fill='green') for i in xrange(NB_OBS)]
         #table of circles to draw for each fixed obstacle
         self.points_fix=[self.canevas.create_oval(self.fixed[i].x-RAYON_FIX,self.fixed[i].y-RAYON_FIX,self.fixed[i].x+RAYON_FIX,self.fixed[i].y+RAYON_FIX,width=1,outline='red',fill='red') for i in xrange(NB_FIX)]
 
@@ -360,7 +385,7 @@ class boid:
             #print "OBS", self.obstacles[i].v1,self.obstacles[i].v2
             
         for i in xrange(NB_MONO):
-            self.monomers[i].move(self.obstacles,self.monomers,self.fixed, i)
+            self.monomers[i].move(self.obstacles,self.monomers,self.fixed, self.polymers, i)
             #print "MONO", self.monomers[i].v1,self.monomers[i].v2
 
     def draw(self):
@@ -368,10 +393,10 @@ class boid:
 
         #update of points coordinates for the animation
         for i in xrange(NB_MONO):
-            self.canevas.coords(self.points_mono[i],self.monomers[i].x-RAYON,self.monomers[i].y-RAYON,self.monomers[i].x+RAYON,self.monomers[i].y+5)
+            self.canevas.coords(self.points_mono[i],self.monomers[i].x-RAYON,self.monomers[i].y-RAYON,self.monomers[i].x+RAYON,self.monomers[i].y+RAYON)
 
         for i in xrange(NB_OBS):
-            self.canevas.coords(self.points_obs[i],self.obstacles[i].x-RAYON-3,self.obstacles[i].y-RAYON,self.obstacles[i].x+RAYON+3,self.obstacles[i].y+5)
+            self.canevas.coords(self.points_obs[i],self.obstacles[i].x-RAYON -3,self.obstacles[i].y-RAYON,self.obstacles[i].x+RAYON +3,self.obstacles[i].y+RAYON)
 
 
         #refreash the window every 10 ms    
@@ -383,7 +408,7 @@ class boid:
 
 #-------------------------------------------------------------------------------
 
-envir=boid()
+envir=cell()
 print envir
 envir.draw()
 envir.window.mainloop()
