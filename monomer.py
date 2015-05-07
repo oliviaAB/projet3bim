@@ -22,7 +22,7 @@ import math
 SPEED=20
 TIME=0.1 #0.1
 
-NB_MONO=20 #number of monomers in the cell
+NB_MONO=50 #number of monomers in the cell
 NB_OBS=5 #number of obstacles in the cell
 NB_FIX=1 #number of fixed obstacles in the cell
 
@@ -52,7 +52,7 @@ class monomer:
         self.v2=random.random()*2-1
 
         self.ispoly=0 #to know if the monomer is in a polymer
-        self.ishead=-1 #to know if the monomer is the head of the polymer (then ishead=-1), else, to know which monomer is the head of the polymer
+        self.ishead=0 #to know if the monomer is the head of the polymer (then ishead=-1), else, to know which monomer is the head of the polymer
                         # if not in a polymer, ishead=-1
 
 
@@ -149,17 +149,28 @@ class monomer:
                 #     obs+=1
 
                     if self.near(monomers[y], CONTACT_POL)==1:
-                        if polymers.has_key(y):
-                            new=polymers[y]
-                            new.append(y)
-                            polymers[num]=new
-                            del polymers[y] 
-                            self.ispoly=1
-                            monomers[y].ishead=num
 
+                        #if the monomer self hits is already the head of a polymer
+                        #if monomers[y].ishead==1:
+                        if polymers.has_key(monomers[y]):
+
+                            polymers[monomers[y]].add(monomers[num],polymers)
+                            
+                            print "HAAAAAAAAA"
+
+                            # new=polymers[y]
+                            # new.append(y)
+                            # polymers[num]=new
+                            # del polymers[y] 
+                            # self.ispoly=1
+                            # monomers[y].ishead=num
+
+                         #if the monomer self hits is alone
                         elif monomers[y].ispoly==0:
-                            polymers[num]=[y]
-                            monomers[y].ishead=num
+                            polymers[monomers[num]]=polymer(monomers[num],monomers[y])
+                            print monomers[num].ishead
+                            print polymers.has_key(monomers[num])
+
 
                         else:
                             v1=v1+monomers[y].v1-self.v1
@@ -353,6 +364,62 @@ class obstacle_fixed:
     def get_coordpol(self):
         return(self.r,self.theta)
 
+
+#-----------------------------------------------------------------------------
+
+
+class polymer:
+
+    def __init__(self, nhead, nnext):
+        self.head=nhead
+        self.head.ishead=1
+        self.head.ispoly=1
+        self.next=[nnext]
+        self.next[0].ispoly=1
+
+    def add(self,nelse,dic):
+        self.next.append(self.head)
+        self.head.ishead=0
+        del dic[self.head]
+        self.head=nelse
+        nelse.ishead=1
+        self.head.ispoly=1
+        dic[self.head]=self
+
+
+    def move(self):
+
+        #Update the header speed
+
+        #coordonates of moving vector between -1 and 1
+        self.head.v1=self.head.v1+(random.random()*2-1)*5
+        self.head.v2=self.head.v2+(random.random()*2-1)*5
+        norm=math.sqrt(self.head.v1*self.head.v1+self.head.v2*self.head.v2)
+
+        #monomer's speed constant
+        self.head.v1=self.head.v1*SPEED/norm
+        self.head.v2=self.head.v2*SPEED/norm
+
+        self.head.wind()
+
+        self.head.x=self.head.x+TIME*self.head.v1
+        self.head.y=self.head.y+TIME*self.head.v2
+
+
+        self.head.update_pol()
+
+        #Update the polymer speed
+
+        for mono in self.next:
+            mono.v1=self.head.v1
+            mono.v2=self.head.v2
+
+            mono.x=mono.x+TIME*mono.v1
+            mono.y=mono.y+TIME*mono.v2
+
+            mono.update_pol()
+
+
 #-----------------------------------------------------------------------------
 
 class cell:
@@ -399,6 +466,9 @@ class cell:
         for i in xrange(NB_MONO):
             self.monomers[i].move(self.obstacles,self.monomers,self.fixed, self.polymers, i)
             #print "MONO", self.monomers[i].v1,self.monomers[i].v2
+
+        for i in self.polymers.values():
+            i.move()
 
     def draw(self):
         self.move()
