@@ -155,8 +155,18 @@ class monomer:
                         if polymers.has_key(monomers[y]):
 
                             polymers[monomers[y]].add(monomers[num],polymers)
+                            vectX=(polymers[monomers[num]].next[-1].x-polymers[monomers[num]].next[-2].x)
+                            vectY=(polymers[monomers[num]].next[-1].y-polymers[monomers[num]].next[-2].y)
+                            normvect=math.sqrt(vectX*vectX+vectY*vectY)
+                            vectX=vectX/normvect
+                            vectY=vectY/normvect
+                            self.x=polymers[monomers[num]].next[-1].x+vectX*CONTACT_MONO
+                            self.y=polymers[monomers[num]].next[-1].y+vectY*CONTACT_MONO
+                            # normY=math.sqrt(monomers[y].v1*monomers[y].v1+monomers[y].v2*monomers[y].v2)
+                            # self.x=monomers[y].x+monomers[y].v1*CONTACT_MONO/normY
+                            # self.y=monomers[y].y+monomers[y].v2*CONTACT_MONO/normY
                             
-                            print "HAAAAAAAAA"
+                            #print "HAAAAAAAAA"
 
                             # new=polymers[y]
                             # new.append(y)
@@ -168,8 +178,8 @@ class monomer:
                          #if the monomer self hits is alone
                         elif monomers[y].ispoly==0:
                             polymers[monomers[num]]=polymer(monomers[num],monomers[y])
-                            print monomers[num].ishead
-                            print polymers.has_key(monomers[num])
+                            #print monomers[num].ishead
+                            #print polymers.has_key(monomers[num])
 
 
                         else:
