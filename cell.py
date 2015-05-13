@@ -1,3 +1,19 @@
+#------------------------------------------------------------------------------
+#                                 Projet 3BIM
+#                          Cytoskeleton modelisation
+#              ANGELIN-BONNET Olivia, GURJAO CARINO, PIAT Alexis
+#------------------------------------------------------------------------------
+
+# Hypotheses:
+# 1: aux bords de la cellule, les monomeres subissent du "vent": le bord est plus
+#     visqueux, ils ralentissent tout en etant devies de leur trajectoire avec
+#     une force proportionnelle a leur proximite a la membrane
+
+# 2: Lorsqu'un monomere percute un obstacle (cad lorsqu'il est suffisamment proche,
+#     ils rebondissent l'un contre l'autre
+
+
+
 from Tkinter import *
 
 import random
@@ -5,6 +21,9 @@ import math
 #import numpy
 import monomer
 import constant
+import obstacle
+import polymer
+import obstacle_fixed
 #-----------------------------------------------------------------------------
 
 class cell:
@@ -24,9 +43,9 @@ class cell:
         #table of monomers
         self.monomers=[monomer.monomer() for i in xrange(constant.NB_MONO)]
         #table of obstacles
-        self.obstacles=[monomer.obstacle() for i in xrange(constant.NB_OBS)]
+        self.obstacles=[obstacle.obstacle() for i in xrange(constant.NB_OBS)]
         #table of fixed obstacles
-        self.fixed=[monomer.obstacle_fixed() for i in xrange(constant.NB_FIX)]
+        self.fixed=[obstacle_fixed.obstacle_fixed() for i in xrange(constant.NB_FIX)]
         #table of polymers (dictionnary)
         self.polymers={}
 
