@@ -19,11 +19,12 @@ from Tkinter import *
 import random
 import math
 #import numpy
-import monomer
+#import monomer
 import constant
-import obstacle
+#import obstacle
 import polymer
 import obstacle_fixed
+import objet
 #-----------------------------------------------------------------------------
 
 class cell:
@@ -41,9 +42,9 @@ class cell:
         self.canevas.create_oval(center-constant.R,center-constant.R,center+constant.R,center+constant.R,outline="black",fill="white")
 
         #table of monomers
-        self.monomers=[monomer.monomer() for i in xrange(constant.NB_MONO)]
+        self.monomers=[objet.monomer() for i in xrange(constant.NB_MONO)]
         #table of obstacles
-        self.obstacles=[obstacle.obstacle() for i in xrange(constant.NB_OBS)]
+        self.obstacles=[objet.obstacle() for i in xrange(constant.NB_OBS)]
         #table of fixed obstacles
         self.fixed=[obstacle_fixed.obstacle_fixed() for i in xrange(constant.NB_FIX)]
         #table of polymers (dictionnary)
