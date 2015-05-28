@@ -144,12 +144,14 @@ class obstacle(objet):
 
 class monomer(objet):
 
-    def __init__(self):
+    def __init__(self,num):
         objet.__init__(self)
 
         self.ispoly=0 #to know if the monomer is in a polymer
         self.ishead=0 #to know if the monomer is the head of the polymer (then ishead=-1), else, to know which monomer is the head of the polymer
                         # if not in a polymer, ishead=-1
+
+        self.num=num
 
     def move(self, obstacles, monomers,fixed, polymers, num):
         obs=0

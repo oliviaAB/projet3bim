@@ -1,7 +1,7 @@
 SPEED=20
 TIME=0.1 #0.1
 
-NB_MONO=100 #number of monomers in the cell
+NB_MONO=15 #number of monomers in the cell
 NB_OBS=5 #number of obstacles in the cell
 NB_FIX=1 #number of fixed obstacles in the cell
 

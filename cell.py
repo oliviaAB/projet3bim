@@ -42,7 +42,7 @@ class cell:
         self.canevas.create_oval(center-constant.R,center-constant.R,center+constant.R,center+constant.R,outline="black",fill="white")
 
         #table of monomers
-        self.monomers=[objet.monomer() for i in xrange(constant.NB_MONO)]
+        self.monomers=[objet.monomer(i) for i in xrange(constant.NB_MONO)]
         #table of obstacles
         self.obstacles=[objet.obstacle() for i in xrange(constant.NB_OBS)]
         #table of fixed obstacles
@@ -73,7 +73,7 @@ class cell:
             #print "MONO", self.monomers[i].v1,self.monomers[i].v2
 
         for i in self.polymers.values():
-            i.move()
+            i.move(self. monomers, self.obstacles, self.fixed)
 
     def draw(self):
         self.move()
