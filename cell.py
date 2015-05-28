@@ -44,7 +44,7 @@ class cell:
         #table of monomers
         self.monomers=[objet.monomer(i) for i in xrange(constant.NB_MONO)]
         #table of obstacles
-        self.obstacles=[objet.obstacle() for i in xrange(constant.NB_OBS)]
+        self.obstacles=[objet.obstacle(i) for i in xrange(constant.NB_OBS)]
         #table of fixed obstacles
         self.fixed=[obstacle_fixed.obstacle_fixed() for i in xrange(constant.NB_FIX)]
         #table of polymers (dictionnary)
@@ -63,6 +63,58 @@ class cell:
             print self.monomers[i]
         return ""
 
+    def contact(self, monoA, monoB):
+        centerx=(monoA.x+monoB.x)/2
+        centery=(monoA.y+monoB.y)/2
+
+                    #vector bewteen the two monomers
+        vectx=monoA.x-monoB.x
+        vecty=monoA.y+monoB.y
+
+        normvect=math.sqrt(vectx*vectx+vecty*vecty)
+        nx=vectx/normvect
+        ny=vecty/normvect
+ 
+        gx=-ny
+        gy=nx
+
+        vAn=nx*monoA.v1+ny*monoA.v2
+        vAg=gx*monoA.v1+gy*monoA.v2
+                    
+        vBn=nx*monoB.v1+ny*monoB.v2
+        vBg=gx*monoB.v1+gy*monoB.v2
+
+        save=vAn
+
+        vAn=vBn
+        vBn=save
+
+        vAx=nx*vAn+gx*vAg
+        vAy=ny*vAn+gy*vAg
+        normA=math.sqrt(vAx*vAx+vAy*vAy)
+
+
+        vBx=nx*vBn+gx*vBg
+        vBy=ny*vBn+gy*vBg
+        normB=math.sqrt(vBx*vBx+vBy*vBy)
+
+        monoA.v1=vAx/normA
+        monoA.v2=vAy/normB
+
+        monoB.v1=vBx/normB
+        monoB.v2=vBy/normB
+
+        monoA.x=monoA.x+constant.TIME*monoA.v1
+        monoA.y=monoA.y+constant.TIME*monoA.v2
+
+        monoA.update_pol()
+
+        monoB.x=monoB.x+constant.TIME*monoB.v1
+        monoB.y=monoB.y+constant.TIME*monoB.v2
+
+        monoB.update_pol()
+
+
     def move(self):
         for i in xrange(constant.NB_OBS):
             self.obstacles[i].move(self.obstacles,self.monomers,self.fixed,i)
@@ -74,6 +126,23 @@ class cell:
 
         for i in self.polymers.values():
             i.move(self. monomers, self.obstacles, self.fixed)
+
+
+        for monoA in self.monomers:
+            for  monoB in self.monomers:
+                if monoA.num!=monoB.num and monoA.near(monoB, constant.CONTACT_MONO)==1:
+                    self.contact(monoA,monoB)
+
+            for obs in self.obstacles:
+                if monoA.near(obs, constant.CONTACT_OBS):
+                    self.contact(monoA, obs)
+
+
+        for obsA in self.obstacles:
+            for obsB in self.obstacles:
+                if obsA.num!=obsB.num and obsA.near(obsB, constant.CONTACT_OBS)==1:
+                    self.contact(obsA, obsB)
+
 
     def draw(self):
         self.move()
@@ -88,9 +157,6 @@ class cell:
 
         #refreash the window every 10 ms    
         self.window.after(10, self.draw)
-        
-
-
 
 
 #-------------------------------------------------------------------------------

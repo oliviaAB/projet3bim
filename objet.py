@@ -7,7 +7,7 @@ import polymer
 
 class objet:
 
-    def __init__(self):
+    def __init__(self,num):
        
     	#polar coordinates initialized randomly
         self.r=random.random()*constant.R
@@ -18,6 +18,8 @@ class objet:
 
         self.v1=random.random()*2-1
         self.v2=random.random()*2-1
+
+        self.num=num
 
     def __repr__(self):
     	print self.r, self.theta
@@ -94,9 +96,9 @@ class objet:
 
 class obstacle(objet):
 
-    def __init__(self):
+    def __init__(self,num):
 
-        objet.__init__(self)
+        objet.__init__(self,num)
 
 
     def move(self, obstacles, monomers,fixed, num):
@@ -104,32 +106,32 @@ class obstacle(objet):
         v1=0
         v2=0
 
-        for i in xrange(constant.NB_OBS):
-            if i!=num:
-                if self.near(obstacles[i], constant.CONTACT_OBS)==1:
-                    v1=v1+obstacles[i].v1-self.v1
-                    v2=v2+obstacles[i].v2-self.v2
-                    obs+=1
+        # for i in xrange(constant.NB_OBS):
+        #     if i!=num:
+        #         if self.near(obstacles[i], constant.CONTACT_OBS)==1:
+        #             v1=v1+obstacles[i].v1-self.v1
+        #             v2=v2+obstacles[i].v2-self.v2
+        #             obs+=1
 
-        for y in xrange(constant.NB_MONO):
-            if self.near(monomers[y],constant.CONTACT_MONO)==1:
-                v1=v1+monomers[y].v1-self.v1
-                v2=v2+monomers[y].v2-self.v2
-                obs+=1
+        # for y in xrange(constant.NB_MONO):
+        #     if self.near(monomers[y],constant.CONTACT_MONO)==1:
+        #         v1=v1+monomers[y].v1-self.v1
+        #         v2=v2+monomers[y].v2-self.v2
+        #         obs+=1
 
-        for j in xrange(constant.NB_FIX):
-            if self.near(fixed[j],constant.CONTACT_FIX)==1:
-                self.v1=-self.v1
-                self.v2=-self.v2
+        # for j in xrange(constant.NB_FIX):
+        #     if self.near(fixed[j],constant.CONTACT_FIX)==1:
+        #         self.v1=-self.v1
+        #         self.v2=-self.v2
                 
-        if obs==0:
-            self.move_random()
-        else:
-            self.v1=v1/obs
-            self.v2=v2/obs
-            norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
-            self.v1=self.v1*(constant.SPEED+10)/norm
-            self.v2=self.v2*(constant.SPEED+10)/norm
+        # if obs==0:
+        self.move_random()
+        # else:
+        #     self.v1=v1/obs
+        #     self.v2=v2/obs
+        #     norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
+        #     self.v1=self.v1*(constant.SPEED+10)/norm
+        #     self.v2=self.v2*(constant.SPEED+10)/norm
 
         self.wind()
 
@@ -145,13 +147,11 @@ class obstacle(objet):
 class monomer(objet):
 
     def __init__(self,num):
-        objet.__init__(self)
+        objet.__init__(self,num)
 
         self.ispoly=0 #to know if the monomer is in a polymer
         self.ishead=0 #to know if the monomer is the head of the polymer (then ishead=-1), else, to know which monomer is the head of the polymer
                         # if not in a polymer, ishead=-1
-
-        self.num=num
 
     def move(self, obstacles, monomers,fixed, polymers, num):
         obs=0
@@ -161,11 +161,11 @@ class monomer(objet):
         #if the monomer is not in a polymer
         if self.ispoly==0:
 
-            for i in xrange(constant.NB_OBS):
-                if self.near(obstacles[i], constant.CONTACT_OBS)==1:
-                    v1=v1+obstacles[i].v1-self.v1
-                    v2=v2+obstacles[i].v2-self.v2
-                    obs+=1
+            # for i in xrange(constant.NB_OBS):
+            #     if self.near(obstacles[i], constant.CONTACT_OBS)==1:
+            #         v1=v1+obstacles[i].v1-self.v1
+            #         v2=v2+obstacles[i].v2-self.v2
+            #         obs+=1
 
             for y in xrange(constant.NB_MONO):
                 if y!=num:
@@ -208,13 +208,6 @@ class monomer(objet):
                             #print polymers.has_key(monomers[num])
 
 
-                        else:
-                            v1=v1+monomers[y].v1-self.v1
-                            v2=v2+monomers[y].v2-self.v2
-                            obs+=1
-
-
-
 
             fix=0
             for j in xrange(constant.NB_FIX):
@@ -230,12 +223,12 @@ class monomer(objet):
 
 
             #else, take into consideration objects hit
-            else:
-                self.v1=v1/obs
-                self.v2=v2/obs
-                norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
-                self.v1=self.v1*(constant.SPEED+10)/norm
-                self.v2=self.v2*(constant.SPEED+10)/norm
+            # else:
+            #     self.v1=v1/obs
+            #     self.v2=v2/obs
+            #     norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
+            #     self.v1=self.v1*(constant.SPEED+10)/norm
+            #     self.v2=self.v2*(constant.SPEED+10)/norm
 
             if fix!=0:
                 norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)

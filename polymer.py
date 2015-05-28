@@ -92,16 +92,20 @@ class polymer:
         i=0
         j=0
 
-        print len(self.next), len(chain) 
 
+        # while i<len(chain) and fix==0:
 
-        while i<len(chain) and fix==0:
+        #     while j<constant.NB_FIX and fix==0:
+        #         if chain[i].near(fixed[j], constant.CONTACT_FIX)==1:
+        #             fix=1
+        #         j+=1
+        #     i+=1
 
-            while j<constant.NB_FIX and fix==0:
+        for i in xrange(len(chain)):
+            for j in xrange(constant.NB_FIX):
                 if chain[i].near(fixed[j], constant.CONTACT_FIX)==1:
                     fix=1
-                j+=1
-            i+=1
+
 
         if fix!=0:
             print 'BUTE'
