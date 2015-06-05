@@ -49,6 +49,7 @@ class cell:
         self.fixed=[obstacle_fixed.obstacle_fixed() for i in xrange(constant.NB_FIX)]
         #table of polymers (dictionnary)
         self.polymers={}
+        self.nb_polymers=0
 
         #table of circles to draw for each monomer
         self.points_mono=[self.canevas.create_oval(self.monomers[i].x-constant.RAYON,self.monomers[i].y-constant.RAYON,self.monomers[i].x+constant.RAYON,self.monomers[i].y+constant.RAYON,width=1,outline='blue',fill='blue') for i in xrange(constant.NB_MONO)]
@@ -73,7 +74,9 @@ class cell:
             #print "MONO", self.monomers[i].v1,self.monomers[i].v2
 
         for i in self.polymers.values():
-            i.move(self.obstacles,self.fixed)
+            i.move(self.monomers, self.obstacles, self.fixed)
+
+        self.nb_polymers=len(self.polymers.keys())
 
         for i in xrange(constant.NB_OBS):
             self.obstacles[i].update_speed()
@@ -81,6 +84,10 @@ class cell:
         for i in xrange(constant.NB_MONO):
             if self.monomers[i].ispoly==0:
                 self.monomers[i].update_speed()
+
+        for i,poly in enumerate(self.polymers.values()):
+            poly.update_speed()
+
 
     def draw(self):
         self.move()
@@ -94,7 +101,7 @@ class cell:
 
 
         #refreash the window every 10 ms    
-        self.window.after(10, self.draw)
+        self.window.after(1, self.draw)
         
 
 
@@ -103,7 +110,7 @@ class cell:
 #-------------------------------------------------------------------------------
 
 envir=cell()
-print envir
+#print envir
 envir.draw()
 envir.window.mainloop()
 

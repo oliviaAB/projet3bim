@@ -65,7 +65,7 @@ class objet:
 
     def wind(self):
         if self.r>(constant.R-50):
-            braking=(50-(constant.R-self.r))/5
+            braking=(50-(constant.R-self.r))*constant.SPEED/20
             #print braking
             
             if self.x>constant.R:
@@ -94,8 +94,11 @@ class objet:
     def update_speed(self):
 
         norm=math.sqrt(self.v1_next*self.v1_next+self.v2_next*self.v2_next)
-        self.v1=self.v1_next*(constant.SPEED+10)/norm
-        self.v2=self.v2_next*(constant.SPEED+10)/norm
+        self.v1=self.v1_next*(constant.SPEED)/norm
+        self.v2=self.v2_next*(constant.SPEED)/norm
+
+        if self.v1==0 and self.v2==0:
+            print '000000'
 
         self.x=self.x+constant.TIME*self.v1
         self.y=self.y+constant.TIME*self.v2
@@ -190,21 +193,9 @@ class monomer(objet):
                     if self.near(monomers[y], constant.CONTACT_POL)==1:
 
                         #if the monomer self hits is already the head of a polymer
-                        #if monomers[y].ishead==1:
-                        if polymers.has_key(monomers[y]):
-
+                        if monomers[y].ishead==1:
                             polymers[monomers[y]].add(monomers[num],polymers)
-                            vectX=(polymers[monomers[num]].next[-1].x-polymers[monomers[num]].next[-2].x)
-                            vectY=(polymers[monomers[num]].next[-1].y-polymers[monomers[num]].next[-2].y)
-                            normvect=math.sqrt(vectX*vectX+vectY*vectY)
-                            vectX=vectX/normvect
-                            vectY=vectY/normvect
-                            self.x=polymers[monomers[num]].next[-1].x+vectX*constant.CONTACT_MONO
-                            self.y=polymers[monomers[num]].next[-1].y+vectY*constant.CONTACT_MONO
-                            # normY=math.sqrt(monomers[y].v1*monomers[y].v1+monomers[y].v2*monomers[y].v2)
-                            # self.x=monomers[y].x+monomers[y].v1*CONTACT_MONO/normY
-                            # self.y=monomers[y].y+monomers[y].v2*CONTACT_MONO/normY
-                            
+
                             #print "HAAAAAAAAA"
 
                             # new=polymers[y]
@@ -216,7 +207,7 @@ class monomer(objet):
 
                          #if the monomer self hits is alone
                         elif monomers[y].ispoly==0:
-                            polymers[monomers[num]]=polymer.polymer(monomers[num],monomers[y])
+                            polymers[monomers[num]]=polymer.polymer(monomers[num],monomers[y],polymers)
                             #print monomers[num].ishead
                             #print polymers.has_key(monomers[num])
 
@@ -227,18 +218,10 @@ class monomer(objet):
                             obs+=1
 
 
-
-
-            fix=0
-            for j in xrange(constant.NB_FIX):
-                if self.near(fixed[j],constant.CONTACT_FIX)==1:
-                    self.v1_next=-self.v1
-                    self.v2_next=-self.v2
-                    fix=1
                     
                 
         #if the monomer didn't hit anything, then random movment
-            if obs==0 and self.ispoly==0:
+            if obs==0:
                self.move_random()
 
 
@@ -254,6 +237,15 @@ class monomer(objet):
             #     norm=math.sqrt(self.v1*self.v1+self.v2*self.v2)
             #     self.v1_next=self.v1_next*(constant.SPEED+10)/norm
             #     self.v2_next=self.v2_next*(constant.SPEED+10)/norm
+
+
+
+            fix=0
+            for j in xrange(constant.NB_FIX):
+                if self.near(fixed[j],constant.CONTACT_FIX)==1:
+                    self.v1_next=-self.v1
+                    self.v2_next=-self.v2
+                    fix=1
 
             self.wind()
 
