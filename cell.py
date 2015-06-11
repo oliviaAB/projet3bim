@@ -175,10 +175,34 @@ class cell:
 
 
 #-------------------------------------------------------------------------------
+def simulation():
+    envir=cell()
+    #print envir
+    envir.draw()
+    envir.window.mainloop()
 
-envir=cell()
-#print envir
-envir.draw()
-envir.window.mainloop()
 
+#fenetre de depart
+
+windowPRINC=Tk()
+windowPRINC.title('Cytoskeleton Modelisation')
+
+FramePRINC = Frame(windowPRINC, borderwidth=2, relief=GROOVE)
+FramePRINC.pack(side=LEFT, padx=60, pady=60)
+
+# canevasPRINC=Canvas(windowPRINC, width=2*constant.R+20, height=2*constant.R+20, bg='white')
+# canevasPRINC.pack(padx=5,pady=5)
+
+mono_init = Scale(FramePRINC, from_=20, to=100, orient  = HORIZONTAL)
+mono_init.pack()
+
+
+
+monboutonSTART=Button(FramePRINC,text='Lancer la simulation',command=simulation) #self.window.quit
+monboutonSTART.pack(side="left")
+
+constant.NB_MONO = mono_init.get()
+print constant.NB_MONO
+
+windowPRINC.mainloop()
 
