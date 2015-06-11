@@ -120,7 +120,7 @@ class polymer:
             i+=1
 
         if wind !=0:    
-            braking=(50-(constant.R-self.chain[i-1].r))
+            braking=(50-(constant.R-self.chain[i-1].r-10))
             
             if self.chain[i-1].x>constant.R:
                 #top right quarter

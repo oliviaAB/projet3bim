@@ -25,6 +25,9 @@ import constant
 import polymer
 import obstacle_fixed
 import objet
+import os
+
+state=True
 #-----------------------------------------------------------------------------
 
 class cell:
@@ -40,6 +43,18 @@ class cell:
         self.canevas.pack(padx=5,pady=5)
         center=constant.R+10
         self.canevas.create_oval(center-constant.R,center-constant.R,center+constant.R,center+constant.R,outline="black",fill="white")
+
+        self.monboutonSTOP=Button(self.window,text='Stop',command=self.end) #self.window.quit
+        self.monboutonSTOP.pack(side="left")
+
+        self.monboutonTHEORIE=Button(self.window,text='Donnees theoriques',command=self.end) #self.window.quit
+        self.monboutonTHEORIE.pack(side="right")
+
+        self.monboutonSIMULATIONS=Button(self.window,text='Resume des simulations',command=self.res_sim) #self.window.quit
+        self.monboutonSIMULATIONS.pack(side="right")
+
+        self.monboutonRESTART=Button(self.window,text='Lancer',command=self.start) #self.window.quit
+        self.monboutonRESTART.pack(side="left")
 
         #table of monomers
         self.monomers=[objet.monomer() for i in xrange(constant.NB_MONO)]
@@ -90,7 +105,8 @@ class cell:
 
 
     def draw(self):
-        self.move()
+        if (state):
+            self.move()
 
         #update of points coordinates for the animation
         for i in xrange(constant.NB_MONO):
@@ -102,7 +118,58 @@ class cell:
 
         #refreash the window every 10 ms    
         self.window.after(1, self.draw)
-        
+
+    def end(self):
+
+        #save datas into a .txt with all previous simulations
+        donnees=open("polymers.txt","a")
+        txt=str(constant.NB_MONO)+" "+str(constant.NB_OBS)+" "+str(self.nb_polymers)
+        for poly in self.polymers.values():
+            txt=txt+" "+str(poly.length)
+        txt=txt+"\n"
+        donnees.write(txt)
+        donnees.close()
+
+        #count how many polymers for each chain length
+        length_poly={}
+        for poly in self.polymers.values():
+            if length_poly.has_key(poly.length):
+                length_poly[poly.length]+=1
+            else:
+                length_poly[poly.length]=1
+
+        donnees2=open("monomers.txt","w")
+
+        for l in length_poly.keys():
+            donnees2.write(str(l)+" "+str(length_poly[l])+"\n")
+
+        donnees2.close()
+
+        fichier=open("commandeGNU.txt","w")
+
+        comm2="plot 'monomers.txt' using 1:2 with lines title 'Nombre de polymeres formes en fonction de leur longueur' \n"
+        fichier.write(comm2)
+        fichier.close()
+        os.system("gnuplot "+"commandeGNU.txt --persist")
+
+        #self.window.quit()
+        global state
+        state=False
+
+
+    def res_sim(self):
+        fichier=open("commandeGNU.txt","w")
+        comm1="plot 'polymers.txt' using 1:3 with points title 'Nombre de polymeres formes en fonction du nombre de monomeres initial'\n"
+        fichier.write(comm1)
+        fichier.close()
+        os.system("gnuplot "+"commandeGNU.txt --persist")
+
+        global state
+        state=False
+
+    def start(self):
+        global state
+        state=True
 
 
 
