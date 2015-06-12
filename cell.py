@@ -26,8 +26,13 @@ import polymer
 import obstacle_fixed
 import objet
 import os
+import datetime
+import time
+MINUTE = 60
+HOUR = 60*MINUTE
 
 state=True
+
 #-----------------------------------------------------------------------------
 
 class cell:
@@ -47,7 +52,7 @@ class cell:
         self.monboutonSTOP=Button(self.window,text='Stop',command=self.end) #self.window.quit
         self.monboutonSTOP.pack(side="left")
 
-        self.monboutonTHEORIE=Button(self.window,text='Donnees theoriques',command=self.end) #self.window.quit
+        self.monboutonTHEORIE=Button(self.window,text='Donnees theoriques',command=self.theorique) #self.window.quit
         self.monboutonTHEORIE.pack(side="right")
 
         self.monboutonSIMULATIONS=Button(self.window,text='Resume des simulations',command=self.res_sim) #self.window.quit
@@ -66,6 +71,8 @@ class cell:
         self.polymers={}
         self.nb_polymers=0
 
+        self.length_poly={}
+
         #table of circles to draw for each monomer
         self.points_mono=[self.canevas.create_oval(self.monomers[i].x-constant.RAYON,self.monomers[i].y-constant.RAYON,self.monomers[i].x+constant.RAYON,self.monomers[i].y+constant.RAYON,width=1,outline='blue',fill='blue') for i in xrange(constant.NB_MONO)]
         #table of circles to draw for each obstacle
@@ -73,11 +80,25 @@ class cell:
         #table of circles to draw for each fixed obstacle
         self.points_fix=[self.canevas.create_oval(self.fixed[i].x-constant.RAYON_FIX,self.fixed[i].y-constant.RAYON_FIX,self.fixed[i].x+constant.RAYON_FIX,self.fixed[i].y+constant.RAYON_FIX,width=1,outline='red',fill='red') for i in xrange(constant.NB_FIX)]
 
+        #self.start=time.time()
+
+        self.done_time=datetime.datetime.now() + datetime.timedelta(seconds=HOUR/320) # 3 minutes
+        self.label = Label(self.window, text="")
+        self.label.pack()
+        self.elapsed=self.done_time - datetime.datetime.now()
+
 
     def __repr__(self):
         for i in xrange(constant.NB_MONO):
             print self.monomers[i]
         return ""
+
+
+    def update_clock(self):
+        self.elapsed = self.done_time - datetime.datetime.now()
+        m,s =self.elapsed.seconds/60,self.elapsed.seconds%60
+        self.label.configure(text="%02d:%02d"%(m,s))
+
 
     def move(self):
         for i in xrange(constant.NB_OBS):
@@ -105,43 +126,44 @@ class cell:
 
 
     def draw(self):
-        if (state):
-            self.move()
 
-        #update of points coordinates for the animation
-        for i in xrange(constant.NB_MONO):
-            self.canevas.coords(self.points_mono[i],self.monomers[i].x-constant.RAYON,self.monomers[i].y-constant.RAYON,self.monomers[i].x+constant.RAYON,self.monomers[i].y+constant.RAYON)
+        if self.elapsed.seconds>0:
+            if (state) :
+                self.move()
+                self.update_clock()
 
-        for i in xrange(constant.NB_OBS):
-            self.canevas.coords(self.points_obs[i],self.obstacles[i].x-constant.RAYON -3,self.obstacles[i].y-constant.RAYON,self.obstacles[i].x+constant.RAYON +3,self.obstacles[i].y+constant.RAYON)
+            #update of points coordinates for the animation
+            for i in xrange(constant.NB_MONO):
+                self.canevas.coords(self.points_mono[i],self.monomers[i].x-constant.RAYON,self.monomers[i].y-constant.RAYON,self.monomers[i].x+constant.RAYON,self.monomers[i].y+constant.RAYON)
 
+            for i in xrange(constant.NB_OBS):
+                self.canevas.coords(self.points_obs[i],self.obstacles[i].x-constant.RAYON -3,self.obstacles[i].y-constant.RAYON,self.obstacles[i].x+constant.RAYON +3,self.obstacles[i].y+constant.RAYON)
 
-        #refreash the window every 10 ms    
-        self.window.after(1, self.draw)
+            #refreash the window every 10 ms    
+            self.window.after(1, self.draw)
+
+        else:
+            self.end()
+
+    def update_length_poly(self):
+        for poly in self.polymers.values():
+            if self.length_poly.has_key(poly.length):
+                self.length_poly[poly.length]+=1
+            else:
+                self.length_poly[poly.length]=1
+
 
     def end(self):
-
-        #save datas into a .txt with all previous simulations
-        donnees=open("polymers.txt","a")
-        txt=str(constant.NB_MONO)+" "+str(constant.NB_OBS)+" "+str(self.nb_polymers)
-        for poly in self.polymers.values():
-            txt=txt+" "+str(poly.length)
-        txt=txt+"\n"
-        donnees.write(txt)
-        donnees.close()
-
-        #count how many polymers for each chain length
-        length_poly={}
-        for poly in self.polymers.values():
-            if length_poly.has_key(poly.length):
-                length_poly[poly.length]+=1
-            else:
-                length_poly[poly.length]=1
+        #self.window.quit()
+        global state
+        state=False
 
         donnees2=open("monomers.txt","w")
 
-        for l in length_poly.keys():
-            donnees2.write(str(l)+" "+str(length_poly[l])+"\n")
+        self.update_length_poly()
+
+        for l in self.length_poly.keys():
+            donnees2.write(str(l)+" "+str(self.length_poly[l])+"\n")
 
         donnees2.close()
 
@@ -152,26 +174,46 @@ class cell:
         fichier.close()
         os.system("gnuplot "+"commandeGNU.txt --persist")
 
-        #self.window.quit()
-        global state
-        state=False
+
 
 
     def res_sim(self):
+        global state
+        state=False
+
+        #save datas into a .txt with all previous simulations
+        donnees=open("polymers.txt","a")
+        txt=str(constant.NB_MONO)+" "+str(constant.NB_OBS)+" "+str(self.nb_polymers)
+        donnees.write(txt)
+        donnees.close()
+
+
         fichier=open("commandeGNU.txt","w")
         comm1="plot 'polymers.txt' using 1:3 with points title 'Nombre de polymeres formes en fonction du nombre de monomeres initial'\n"
         fichier.write(comm1)
         fichier.close()
         os.system("gnuplot "+"commandeGNU.txt --persist")
 
-        global state
-        state=False
 
     def start(self):
         global state
         state=True
 
+    def theorique(self):
+        global state
+        state=False
+        
+        donnees=open("vitesse_exp.txt","a")
+        vitesse=100000
+        donnees.write(str(constant.NB_MONO)+" "+str(vitesse)+"\n")
 
+        donnees.close()
+
+        fichier=open("commandeGNU.txt","w")
+        fichier.write("f(x)="+str(constant.SLOPE)+"*x+"+str(constant.INTERCEPT)+"\n")
+        fichier.write("plot f(x) title 'Donnees theoriques', 'vitesse_exp.txt' using 1:2 with points title 'Valeurs experimentales' \n")
+        fichier.close()
+        os.system("gnuplot "+"commandeGNU.txt --persist")
 
 
 #-------------------------------------------------------------------------------
@@ -193,16 +235,16 @@ FramePRINC.pack(side=LEFT, padx=60, pady=60)
 # canevasPRINC=Canvas(windowPRINC, width=2*constant.R+20, height=2*constant.R+20, bg='white')
 # canevasPRINC.pack(padx=5,pady=5)
 
-mono_init = Scale(FramePRINC, from_=20, to=100, orient  = HORIZONTAL)
-mono_init.pack()
+# mono_init = Scale(FramePRINC, from_=20, to=100, orient  = HORIZONTAL)
+# mono_init.pack()
 
 
 
 monboutonSTART=Button(FramePRINC,text='Lancer la simulation',command=simulation) #self.window.quit
 monboutonSTART.pack(side="left")
 
-constant.NB_MONO = mono_init.get()
-print constant.NB_MONO
+# constant.NB_MONO = mono_init.get()
+# print constant.NB_MONO
 
 windowPRINC.mainloop()
 
