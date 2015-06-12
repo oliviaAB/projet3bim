@@ -82,7 +82,8 @@ class cell:
 
         #self.start=time.time()
 
-        self.done_time=datetime.datetime.now() + datetime.timedelta(seconds=HOUR/320) # 3 minutes
+        self.delta= HOUR/320 # 3 minutes
+        self.done_time=datetime.datetime.now() + datetime.timedelta(seconds= self.delta)
         self.label = Label(self.window, text="")
         self.label.pack()
         self.elapsed=self.done_time - datetime.datetime.now()
@@ -202,14 +203,27 @@ class cell:
     def theorique(self):
         global state
         state=False
+
+        self.update_length_poly()
         
         donnees=open("vitesse_exp.txt","a")
-        vitesse=100000
-        donnees.write(str(constant.NB_MONO)+" "+str(vitesse)+"\n")
+        vitesse=0
+        for l in self.length_poly.keys():
+            vitesse+=l*self.length_poly[l]
 
+        vitesse=vitesse/float(self.nb_polymers*self.delta)
+
+        #on extrapole la vitesse pour un nombre de polymeres comparable
+        #a ceux des donnees theoriques
+
+        vitesse=vitesse*(2.5*math.pow(10,7)+constant.CONTACT_MONO*100)/float(constant.CONTACT_MONO)
+
+        donnees.write(str(2.5*math.pow(10,7)+constant.CONTACT_MONO*100)+" "+str(vitesse)+"\n")
+        print constant.NB_MONO
         donnees.close()
 
         fichier=open("commandeGNU.txt","w")
+        fichier.write("set xrange [2*10**7: 4*10**7] \n")
         fichier.write("f(x)="+str(constant.SLOPE)+"*x+"+str(constant.INTERCEPT)+"\n")
         fichier.write("plot f(x) title 'Donnees theoriques', 'vitesse_exp.txt' using 1:2 with points title 'Valeurs experimentales' \n")
         fichier.close()
