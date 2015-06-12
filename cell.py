@@ -80,9 +80,10 @@ class cell:
         #table of circles to draw for each fixed obstacle
         self.points_fix=[self.canevas.create_oval(self.fixed[i].x-constant.RAYON_FIX,self.fixed[i].y-constant.RAYON_FIX,self.fixed[i].x+constant.RAYON_FIX,self.fixed[i].y+constant.RAYON_FIX,width=1,outline='red',fill='red') for i in xrange(constant.NB_FIX)]
 
-        #self.start=time.time()
-
-        self.delta= HOUR/320 # 3 minutes
+        
+        
+        #timer
+        self.delta= HOUR/20 # 3 minutes
         self.done_time=datetime.datetime.now() + datetime.timedelta(seconds= self.delta)
         self.label = Label(self.window, text="")
         self.label.pack()
@@ -231,12 +232,6 @@ class cell:
 
 
 #-------------------------------------------------------------------------------
-def simulation():
-    envir=cell()
-    #print envir
-    envir.draw()
-    envir.window.mainloop()
-
 
 #fenetre de depart
 
@@ -246,11 +241,30 @@ windowPRINC.title('Cytoskeleton Modelisation')
 FramePRINC = Frame(windowPRINC, borderwidth=2, relief=GROOVE)
 FramePRINC.pack(side=LEFT, padx=60, pady=60)
 
+#First window's button
+nb_mono = Scale(windowPRINC, from_=20, to=150, orient = HORIZONTAL, label = "Nombre initial de monomeres", length = 250)
+nb_mono.pack()
+nb_obs = Scale(windowPRINC, from_=0, to=150, orient = HORIZONTAL, label = "Nombre initial d'obstacles mouvant", length = 250)
+nb_obs.pack()
+nb_obsfixe = Scale(windowPRINC, from_=1, to=10, orient = HORIZONTAL, label = "Nombre initial d'obstacles fixes", length = 250)
+nb_obsfixe.pack()
+
+
 # canevasPRINC=Canvas(windowPRINC, width=2*constant.R+20, height=2*constant.R+20, bg='white')
 # canevasPRINC.pack(padx=5,pady=5)
 
 # mono_init = Scale(FramePRINC, from_=20, to=100, orient  = HORIZONTAL)
 # mono_init.pack()
+
+
+def simulation():
+    constant.NB_MONO = nb_mono.get()
+    constant.NB_OBS = nb_obs.get()
+    constant.NB_FIX = nb_obsfixe.get()
+    envir=cell()
+    #print envir
+    envir.draw()
+    envir.window.mainloop()
 
 
 
@@ -261,4 +275,3 @@ monboutonSTART.pack(side="left")
 # print constant.NB_MONO
 
 windowPRINC.mainloop()
-
