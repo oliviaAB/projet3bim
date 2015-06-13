@@ -185,7 +185,7 @@ class cell:
 
         #save datas into a .txt with all previous simulations
         donnees=open("polymers.txt","a")
-        txt=str(constant.NB_MONO)+" "+str(constant.NB_OBS)+" "+str(self.nb_polymers)
+        txt=str(constant.NB_MONO)+" "+str(constant.NB_OBS)+" "+str(self.nb_polymers) + "\n"
         donnees.write(txt)
         donnees.close()
 
@@ -212,14 +212,14 @@ class cell:
         for l in self.length_poly.keys():
             vitesse+=l*self.length_poly[l]
 
-        vitesse=vitesse/float(self.nb_polymers*self.delta)
+        vitesse=vitesse/float(self.delta)
 
         #on extrapole la vitesse pour un nombre de polymeres comparable
         #a ceux des donnees theoriques
 
-        vitesse=vitesse*(2.5*math.pow(10,7)+constant.CONTACT_MONO*100)/float(constant.CONTACT_MONO)
-
-        donnees.write(str(2.5*math.pow(10,7)+constant.CONTACT_MONO*100)+" "+str(vitesse)+"\n")
+        vitesse=vitesse*(2.5*math.pow(10,7)+constant.NB_MONO*10000)/float(constant.NB_MONO)
+	nbpoly=(2.5*math.pow(10,7)+self.nb_polymers*10000)/float(self.nb_polymers)
+        donnees.write(str(2.5*math.pow(10,7)+constant.NB_MONO*10000)+" "+str(vitesse)+" "+ str(nbpoly) + "\n")
         print constant.NB_MONO
         donnees.close()
 
